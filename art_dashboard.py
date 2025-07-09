@@ -8,7 +8,8 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import CountVectorizer
 
-spacy.cli.download("en_core_web_sm")
+# Load the spaCy model (pre-installed via requirements.txt)
+nlp = spacy.load("en_core_web_sm")
 
 # Set up Streamlit page
 st.set_page_config(page_title="Reddit ArtSensei Insights", layout="wide")
@@ -21,17 +22,13 @@ client_secret = st.sidebar.text_input("Client Secret", type="password")
 user_agent = "ArtSenseiDashboard"
 
 subreddits = ['learnart', 'learntodraw', 'drawing']
-limit = st.sidebar.slider("Number of Posts per Subreddit", 50, 1000, 200)
-
-# Load NLP model
-nlp = spacy.load('en_core_web_sm')
+limit = st.sidebar.slider("Number of Posts per Subreddit", 50, 500, 100)
 
 if client_id and client_secret:
     reddit = praw.Reddit(client_id=client_id,
                          client_secret=client_secret,
                          user_agent=user_agent)
 
-    # Fetch posts
     posts = []
     for subreddit in subreddits:
         for post in reddit.subreddit(subreddit).top(limit=limit):
@@ -40,7 +37,6 @@ if client_id and client_secret:
 
     df = pd.DataFrame(posts, columns=['content'])
 
-    # Clean text
     def clean_text(text):
         text = re.sub(r'http\S+', '', text)
         text = re.sub(r'[^a-zA-Z\s]', '', text)
@@ -49,7 +45,6 @@ if client_id and client_secret:
     df['cleaned'] = df['content'].apply(clean_text)
     all_text = ' '.join(df['cleaned'].tolist())
 
-    # NLP Analysis
     doc = nlp(all_text)
 
     noun_phrases = [chunk.text.strip() for chunk in doc.noun_chunks]
@@ -65,7 +60,6 @@ if client_id and client_secret:
     verb_df = pd.DataFrame(Counter(verbs).most_common(20), columns=['Verb', 'Frequency'])
     phrase_df = pd.DataFrame(words_freq[:20], columns=['Phrase', 'Frequency'])
 
-    # WordCloud
     wordcloud = WordCloud(width=1000, height=400, background_color='white').generate(all_text)
     st.subheader("Overall Word Cloud")
     fig, ax = plt.subplots(figsize=(15, 7))
