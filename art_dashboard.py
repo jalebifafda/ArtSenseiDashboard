@@ -8,6 +8,8 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import CountVectorizer
 
+spacy.cli.download("en_core_web_sm")
+
 # Set up Streamlit page
 st.set_page_config(page_title="Reddit ArtSensei Insights", layout="wide")
 st.title("ArtSensei Reddit Insights Dashboard")
